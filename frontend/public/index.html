@@ -512,9 +512,9 @@ function openConfirmModal() {
   document.getElementById('btnPay').disabled = true;
   document.getElementById('btnPay').textContent = '送出預約';
   ['payEcpay','payLinepay','payCash'].forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('selected'); });
-  show('confirmModal');
+  document.getElementById('confirmModal').classList.add('open');
 }
-function closeModal() { hide('confirmModal'); }
+function closeModal() { document.getElementById('confirmModal').classList.remove('open'); }
 function selectPay(method) {
   selectedPay = method;
   ['payEcpay','payLinepay','payCash'].forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('selected'); });
