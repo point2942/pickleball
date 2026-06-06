@@ -263,7 +263,7 @@ tr:not(:last-child) td{border-bottom:1px solid #f5f5fa}
     <div id="confirmList"></div>
     <div class="confirm-total"><span>合計</span><span id="confirmTotal"></span></div>
     <div style="margin-top:1.25rem;font-size:14px;font-weight:600;color:#374151;margin-bottom:.5rem">選擇付款方式</div>
-    <div class="pay-methods">
+    <div class="pay-methods" style="grid-template-columns:1fr 1fr 1fr">
       <div class="pay-card" id="payEcpay" onclick="selectPay('ecpay')">
         <div class="pay-icon">💳</div>
         <div class="pay-lbl">信用卡（綠界）</div>
@@ -271,6 +271,10 @@ tr:not(:last-child) td{border-bottom:1px solid #f5f5fa}
       <div class="pay-card" id="payLinepay" onclick="selectPay('linepay')">
         <div class="pay-icon">💚</div>
         <div class="pay-lbl">LINE Pay</div>
+      </div>
+      <div class="pay-card" id="payCash" onclick="selectPay('cash')">
+        <div class="pay-icon">💵</div>
+        <div class="pay-lbl">現場付款</div>
       </div>
     </div>
     <div class="modal-btns">
@@ -506,14 +510,17 @@ function openConfirmModal() {
   document.getElementById('confirmTotal').textContent = `NT$${total.toLocaleString()}`;
   selectedPay = null;
   document.getElementById('btnPay').disabled = true;
-  ['payEcpay','payLinepay'].forEach(id => document.getElementById(id).classList.remove('selected'));
+  document.getElementById('btnPay').textContent = '送出預約';
+  ['payEcpay','payLinepay','payCash'].forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('selected'); });
   show('confirmModal');
 }
 function closeModal() { hide('confirmModal'); }
 function selectPay(method) {
   selectedPay = method;
-  ['payEcpay','payLinepay'].forEach(id => document.getElementById(id).classList.remove('selected'));
-  document.getElementById(method === 'ecpay' ? 'payEcpay' : 'payLinepay').classList.add('selected');
+  ['payEcpay','payLinepay','payCash'].forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('selected'); });
+  const idMap = {ecpay:'payEcpay', linepay:'payLinepay', cash:'payCash'};
+  const el = document.getElementById(idMap[method]);
+  if(el) el.classList.add('selected');
   document.getElementById('btnPay').disabled = false;
 }
 
@@ -527,7 +534,15 @@ async function doBook() {
     const r = await api('POST', '/api/bookings', { slots });
     const bookingIds = r.bookings.map(b => b.id);
 
-    if (selectedPay === 'ecpay') {
+    if (selectedPay === 'cash') {
+      basket = basket.filter(b => b.day !== currentDay);
+      closeModal();
+      toast('✅ 預約成功！請於現場付款');
+      const d = new Date(); d.setDate(d.getDate() + currentDay);
+      renderSchedule(d.toISOString().slice(0,10));
+      renderBasket();
+      switchTab('mybookings');
+    } else if (selectedPay === 'ecpay') {
       const pr = await api('POST', '/api/payment/ecpay/create', { bookingIds });
       submitForm(pr.url, pr.params);
     } else {
