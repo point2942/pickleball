@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: pickleball-booking
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: LINE_NOTIFY_TOKEN
+        sync: false
+      - key: ECPAY_MERCHANT_ID
+        sync: false
+      - key: ECPAY_HASH_KEY
+        sync: false
+      - key: ECPAY_HASH_IV
+        sync: false
+      - key: ECPAY_API_URL
+        value: https://payment-stage.ecpay.com.tw/Cashier/AioCheckout
+      - key: LINEPAY_CHANNEL_ID
+        sync: false
+      - key: LINEPAY_CHANNEL_SECRET
+        sync: false
+      - key: LINEPAY_API_URL
+        value: https://sandbox-api-pay.line.me
+      - key: APP_URL
+        sync: false
