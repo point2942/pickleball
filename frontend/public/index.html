@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🏓 匹克球場地預約</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f6fa;color:#1a1a2e;min-height:100vh}
+.hidden{display:none!important}
+
+/* ── 頂部導覽 ── */
+nav{background:#fff;border-bottom:1px solid #e8eaf0;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:50}
+.nav-logo{font-size:16px;font-weight:600;color:#0a6e4e;display:flex;align-items:center;gap:8px}
+.nav-logo span{font-size:20px}
+.nav-user{display:flex;align-items:center;gap:10px;font-size:14px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#d1fae5;color:#065f46;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.badge-member{background:#fef3c7;color:#92400e;font-size:11px;padding:2px 7px;border-radius:12px;font-weight:500}
+.btn-logout{background:none;border:1px solid #e5e7eb;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px;color:#6b7280}
+.btn-logout:hover{background:#f9fafb}
+
+/* ── 登入頁 ── */
+.login-wrap{max-width:400px;margin:60px auto;padding:0 1rem}
+.login-card{background:#fff;border-radius:16px;padding:2rem;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.login-icon{text-align:center;font-size:48px;margin-bottom:1rem}
+.login-title{text-align:center;font-size:22px;font-weight:700;color:#0a6e4e;margin-bottom:4px}
+.login-sub{text-align:center;font-size:13px;color:#9ca3af;margin-bottom:1.5rem}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;color:#374151;margin-bottom:5px;font-weight:500}
+.form-group input{width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;transition:border .2s}
+.form-group input:focus{border-color:#0a6e4e}
+.btn-green{width:100%;padding:12px;background:#0a6e4e;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px}
+.btn-green:hover{background:#065f46}
+.hint{text-align:center;font-size:12px;color:#9ca3af;margin-top:12px}
+
+/* ── 主頁 Tabs ── */
+.container{max-width:960px;margin:0 auto;padding:1.5rem 1rem}
+.tabs{display:flex;gap:4px;margin-bottom:1.25rem;background:#fff;border-radius:12px;padding:4px;border:1px solid #e8eaf0}
+.tab{flex:1;padding:9px;text-align:center;border-radius:9px;font-size:14px;cursor:pointer;border:none;background:none;color:#6b7280;font-weight:500}
+.tab.active{background:#0a6e4e;color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── 統計卡片 ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.stat-card{background:#fff;border-radius:12px;padding:14px;text-align:center;border:1px solid #e8eaf0}
+.stat-n{font-size:22px;font-weight:700;color:#0a6e4e}
+.stat-n.red{color:#dc2626}
+.stat-n.blue{color:#2563eb}
+.stat-l{font-size:12px;color:#9ca3af;margin-top:2px}
+
+/* ── 日期導覽 ── */
+.date-bar{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.btn-nav{background:#fff;border:1px solid #e5e7eb;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.btn-nav:hover{background:#f0fdf4}
+.date-txt{font-size:15px;font-weight:600;min-width:150px;text-align:center}
+
+/* ── 定價提示 ── */
+.price-info{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.price-chip{background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:4px 12px;font-size:12px;color:#374151}
+.price-chip strong{color:#0a6e4e}
+
+/* ── 圖例 ── */
+.legend{display:flex;gap:14px;margin-bottom:.75rem;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280}
+.leg-dot{width:14px;height:14px;border-radius:4px}
+
+/* ── 排程表格 ── */
+.grid-wrap{overflow-x:auto;border:1px solid #e8eaf0;border-radius:12px;background:#fff}
+table{border-collapse:collapse;min-width:720px;width:100%;table-layout:fixed}
+thead th{font-size:11px;font-weight:600;color:#6b7280;padding:9px 4px;text-align:center;border-bottom:1px solid #f0f0f5;background:#fafafa;letter-spacing:.5px}
+thead th:first-child{text-align:left;padding-left:12px;width:58px}
+.time-lbl{font-size:11px;color:#9ca3af;padding:0 12px;white-space:nowrap;background:#fafafa;border-right:1px solid #f0f0f5}
+.cell{height:32px;cursor:pointer;transition:background .12s;text-align:center;vertical-align:middle;font-size:10px;position:relative;border:1px solid transparent}
+.cell.free{background:#f0fdf4}
+.cell.free:hover{background:#bbf7d0}
+.cell.price-low{background:#dbeafe!important}
+.cell.price-low:hover{background:#93c5fd!important}
+.cell.price-mid{background:#fef9c3!important}
+.cell.price-mid:hover{background:#fde047!important}
+.cell.price-high{background:#f0fdf4!important}
+.cell.price-high:hover{background:#bbf7d0!important}
+.cell.selected{background:#bfdbfe;font-weight:600}
+.cell.selected:hover{background:#93c5fd}
+.cell.booked-other{background:#fee2e2;cursor:not-allowed;color:#991b1b}
+.cell.booked-mine{background:#e0e7ff;cursor:pointer}
+.cell.booked-mine:hover{background:#c7d2fe}
+tr:not(:last-child) td{border-bottom:1px solid #f5f5fa}
+.cell-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;max-width:52px;display:block}
+
+/* ── 購物籃 ── */
+.basket{background:#fff;border-radius:12px;border:1px solid #e8eaf0;padding:1.25rem;margin-top:1rem}
+.basket-title{font-size:15px;font-weight:600;margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
+.basket-empty{font-size:13px;color:#9ca3af;padding:6px 0}
+.basket-item{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid #f5f5fa}
+.basket-item:last-child{border-bottom:none}
+.basket-item-left{display:flex;flex-direction:column;gap:2px}
+.basket-item-price{font-size:12px;color:#0a6e4e;font-weight:600}
+.rm{cursor:pointer;color:#d1d5db;font-size:18px;padding:0 6px;line-height:1}
+.rm:hover{color:#dc2626}
+.basket-total{display:flex;justify-content:space-between;align-items:center;padding:10px 0 0;border-top:1px solid #e8eaf0;margin-top:8px}
+.total-lbl{font-size:14px;color:#374151}
+.total-amt{font-size:20px;font-weight:700;color:#0a6e4e}
+.basket-btns{display:flex;gap:8px;margin-top:12px}
+.btn-clear{flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer;font-size:14px;color:#6b7280}
+.btn-clear:hover{background:#f9fafb}
+.btn-confirm{flex:2;padding:10px;background:#0a6e4e;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600}
+.btn-confirm:hover{background:#065f46}
+
+/* ── 確認/付款彈窗 ── */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex!important}
+.modal{background:#fff;border-radius:16px;padding:1.75rem;width:420px;max-width:92vw;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:1rem}
+.confirm-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid #f5f5fa;color:#374151}
+.confirm-row:last-child{border-bottom:none}
+.confirm-total{display:flex;justify-content:space-between;font-weight:700;font-size:15px;padding:10px 0 0;border-top:2px solid #e8eaf0;margin-top:6px}
+.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0}
+.pay-card{border:2px solid #e5e7eb;border-radius:12px;padding:16px;cursor:pointer;text-align:center;transition:all .15s}
+.pay-card:hover{border-color:#0a6e4e;background:#f0fdf4}
+.pay-card.selected{border-color:#0a6e4e;background:#f0fdf4}
+.pay-icon{font-size:28px;margin-bottom:6px}
+.pay-lbl{font-size:13px;font-weight:600}
+.modal-btns{display:flex;gap:8px;margin-top:1rem}
+.btn-back{flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer;font-size:14px;color:#6b7280}
+.btn-pay{flex:2;padding:10px;background:#0a6e4e;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600}
+.btn-pay:disabled{background:#9ca3af;cursor:not-allowed}
+
+/* ── 我的預約 ── */
+.booking-card{background:#fff;border-radius:12px;border:1px solid #e8eaf0;padding:1rem 1.25rem;margin-bottom:10px}
+.booking-card-row{display:flex;justify-content:space-between;align-items:flex-start}
+.booking-info{flex:1}
+.booking-court{font-weight:600;font-size:15px;margin-bottom:4px}
+.booking-time{font-size:13px;color:#6b7280}
+.booking-price{font-size:13px;color:#0a6e4e;font-weight:600;margin-top:4px}
+.status-badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+.st-pending{background:#fef3c7;color:#92400e}
+.st-paid{background:#d1fae5;color:#065f46}
+.st-cancelled{background:#fee2e2;color:#991b1b}
+.btn-cancel-booking{border:1px solid #e5e7eb;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;background:#fff;color:#dc2626;border-color:#fca5a5;margin-top:8px}
+.btn-cancel-booking:hover{background:#fee2e2}
+.btn-pay-now{border:none;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;background:#0a6e4e;color:#fff;margin-top:8px;margin-left:6px}
+.btn-pay-now:hover{background:#065f46}
+.empty-state{text-align:center;color:#9ca3af;padding:3rem 0;font-size:14px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* ── 付款結果頁 ── */
+.result-wrap{text-align:center;padding:4rem 1rem}
+.result-icon{font-size:60px;margin-bottom:1rem}
+.result-title{font-size:24px;font-weight:700;margin-bottom:8px}
+.result-sub{font-size:14px;color:#6b7280;margin-bottom:2rem}
+.btn-home{display:inline-block;padding:12px 28px;background:#0a6e4e;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;cursor:pointer;border:none;font-size:15px}
+
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  nav{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+
+<!-- 頂部導覽 -->
+<nav id="mainNav" class="hidden">
+  <div class="nav-logo">
+  <img src="/pickleball-banner.png" style="height:32px;width:50px;object-fit:cover;object-position:center;border-radius:6px;margin-right:8px;vertical-align:middle"/>
+  <span style="background:linear-gradient(90deg,#0a6e4e,#16a34a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700">匹克球場地預約</span>
+</div>
+  <div class="nav-user">
+    <div class="avatar" id="navAvatar"></div>
+    <div>
+      <div style="font-size:13px;font-weight:600" id="navName"></div>
+      <div id="memberBadge" class="badge-member hidden">會員</div>
+    </div>
+    <button class="btn-logout" onclick="logout()">登出</button>
+  </div>
+</nav>
+
+<!-- 登入頁 -->
+<div id="loginPage">
+  <div class="login-wrap">
+    <div class="login-card" style="border-radius:20px;box-shadow:0 4px 24px rgba(10,110,78,.12);padding:0;overflow:hidden">
+      <div style="text-align:center;overflow:hidden;border-radius:16px 16px 0 0">
+        <img src="/pickleball-banner.png" alt="Pickleball" style="width:100%;height:160px;object-fit:cover;object-position:center 30%;display:block"/>
+      </div>
+      <div style="padding:1.25rem 1.5rem 1.5rem">
+      <div class="login-title">匹克球場地預約</div>
+      <div class="login-sub">輸入手機號碼與姓名登入或自動註冊</div>
+      <div class="form-group">
+        <label>手機號碼</label>
+        <input type="tel" id="loginPhone" placeholder="09xxxxxxxx" maxlength="10"/>
+      </div>
+      <div class="form-group">
+        <label>姓名</label>
+        <input type="text" id="loginName" placeholder="請輸入真實姓名"/>
+      </div>
+      <div id="loginErr" style="font-size:13px;color:#dc2626;margin-top:4px;display:none"></div>
+      <button class="btn-green" onclick="doLogin()">登入 / 首次自動建立帳號</button>
+      <div class="hint">手機號碼為您的唯一識別，請勿輸入他人號碼</div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- 主頁 -->
+<div id="mainPage" class="hidden">
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('booking')">📅 預約場地</button>
+      <button class="tab" onclick="switchTab('mybookings')">📋 我的預約</button>
+    </div>
+
+    <!-- 預約場地 -->
+    <div id="tabBooking" class="tab-content active">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-n" id="s1">8</div><div class="stat-l">場地數</div></div>
+        <div class="stat-card"><div class="stat-n red" id="s2">0</div><div class="stat-l">已預約</div></div>
+        <div class="stat-card"><div class="stat-n" id="s3">192</div><div class="stat-l">空閒</div></div>
+        <div class="stat-card"><div class="stat-n blue" id="s4">0</div><div class="stat-l">已選（max 5）</div></div>
+      </div>
+
+      <div class="date-bar">
+        <button class="btn-nav" onclick="changeDay(-1)">‹</button>
+        <div class="date-txt" id="dateTxt"></div>
+        <button class="btn-nav" onclick="changeDay(1)">›</button>
+      </div>
+
+      <div class="price-info" id="priceInfo"></div>
+
+      <div class="legend">
+        <div class="leg"><div class="leg-dot" style="background:#dbeafe;border:1px solid #93c5fd"></div>離峰（NT$500以下）</div>
+        <div class="leg"><div class="leg-dot" style="background:#fef9c3;border:1px solid #fde047"></div>晚間（NT$600）</div>
+        <div class="leg"><div class="leg-dot" style="background:#f0fdf4;border:1px solid #86efac"></div>白天（NT$800）</div>
+        <div class="leg"><div class="leg-dot" style="background:#bfdbfe;border:1px solid #93c5fd"></div>已選</div>
+        <div class="leg"><div class="leg-dot" style="background:#e0e7ff;border:1px solid #c7d2fe"></div>我的預約</div>
+        <div class="leg"><div class="leg-dot" style="background:#fee2e2;border:1px solid #fca5a5"></div>他人預約</div>
+      </div>
+
+      <div class="grid-wrap">
+        <table><thead id="schedHead"></thead><tbody id="schedBody"></tbody></table>
+      </div>
+
+      <div class="basket" id="basketArea">
+        <div class="basket-title">🛒 待確認清單 <span id="basketCnt" style="font-size:13px;color:#9ca3af;font-weight:400"></span></div>
+        <div id="basketList"><div class="basket-empty">點擊綠色格子選擇時段（最多4個）</div></div>
+        <div id="basketFooter" class="hidden">
+          <div class="basket-total">
+            <span class="total-lbl">合計費用</span>
+            <span class="total-amt" id="totalAmt">NT$0</span>
+          </div>
+          <div class="basket-btns">
+            <button class="btn-clear" onclick="clearBasket()">清除全部</button>
+            <button class="btn-confirm" onclick="openConfirmModal()">確認預約 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 我的預約 -->
+    <div id="tabMyBookings" class="tab-content">
+      <div id="myBookingsList"><div class="empty-state">載入中...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 付款結果頁 -->
+<div id="resultPage" class="hidden">
+  <div class="result-wrap" id="resultContent"></div>
+</div>
+
+<!-- 確認 & 付款 Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h3>確認預約</h3>
+    <div id="confirmList"></div>
+    <div class="confirm-total"><span>合計</span><span id="confirmTotal"></span></div>
+    <div style="margin-top:1.25rem;font-size:14px;font-weight:600;color:#374151;margin-bottom:.5rem">選擇付款方式</div>
+    <div class="pay-methods" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="pay-card" id="payEcpay" onclick="selectPay('ecpay')">
+        <div class="pay-icon">💳</div>
+        <div class="pay-lbl">信用卡（綠界）</div>
+      </div>
+      <div class="pay-card" id="payLinepay" onclick="selectPay('linepay')">
+        <div class="pay-icon">💚</div>
+        <div class="pay-lbl">LINE Pay</div>
+      </div>
+      <div class="pay-card" id="payCash" onclick="selectPay('cash')">
+        <div class="pay-icon">💵</div>
+        <div class="pay-lbl">現場付款</div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-back" onclick="closeModal()">返回修改</button>
+      <button class="btn-pay" id="btnPay" onclick="doBook()" disabled>送出預約</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let token = localStorage.getItem('pb_token');
+let user = JSON.parse(localStorage.getItem('pb_user') || 'null');
+let currentDay = 0;
+let scheduleData = [];
+let basket = [];
+let priceRules = [];
+let selectedPay = null;
+let pendingBookingIds = [];
+
+// ── 初始化 ──
+(function init() {
+  const path = location.pathname;
+  if (path === '/payment-result') {
+    showResultPage();
+    return;
+  }
+  if (path === '/admin') {
+    location.href = '/admin.html';
+    return;
+  }
+  if (token && user) {
+    showMain();
+  } else {
+    showLogin();
+  }
+})();
+
+function showResultPage() {
+  hide('loginPage'); hide('mainPage');
+  show('resultPage');
+  const p = new URLSearchParams(location.search);
+  const s = p.get('status');
+  const el = document.getElementById('resultContent');
+  if (s === 'success') {
+    el.innerHTML = `<div class="result-icon">✅</div><div class="result-title">付款成功！</div><div class="result-sub">預約已確認，LINE 通知將發送給管理員</div><button class="btn-home" onclick="location.href='/'">返回首頁</button>`;
+  } else if (s === 'cancel') {
+    el.innerHTML = `<div class="result-icon">❌</div><div class="result-title">付款已取消</div><div class="result-sub">預約仍保留 30 分鐘，請盡快完成付款</div><button class="btn-home" onclick="location.href='/'">返回首頁</button>`;
+  } else {
+    el.innerHTML = `<div class="result-icon">⚠️</div><div class="result-title">付款發生問題</div><div class="result-sub">請聯絡管理員確認訂單狀態</div><button class="btn-home" onclick="location.href='/'">返回首頁</button>`;
+  }
+}
+
+function showLogin() { show('loginPage'); hide('mainPage'); hide('mainNav'); }
+function showMain() {
+  hide('loginPage'); show('mainPage'); show('mainNav');
+  document.getElementById('navName').textContent = user.name;
+  document.getElementById('navAvatar').textContent = user.name.slice(0,2);
+  if (user.isMember) show('memberBadge'); else hide('memberBadge');
+  loadPriceRules();
+  renderDate();
+  loadSchedule();
+}
+
+// ── 登入 ──
+async function doLogin() {
+  const phone = document.getElementById('loginPhone').value.trim();
+  const name = document.getElementById('loginName').value.trim();
+  if (!phone || !name) { showErr('loginErr', '請填寫手機號碼與姓名'); return; }
+  try {
+    const r = await api('POST', '/api/auth/member/login', { phone, name });
+    token = r.token; user = r.user;
+    localStorage.setItem('pb_token', token);
+    localStorage.setItem('pb_user', JSON.stringify(user));
+    showMain();
+  } catch(e) { showErr('loginErr', e.message); }
+}
+function logout() {
+  token = null; user = null;
+  localStorage.removeItem('pb_token'); localStorage.removeItem('pb_user');
+  showLogin();
+}
+
+// ── 定價 ──
+async function loadPriceRules() {
+  const r = await api('GET', '/api/prices');
+  priceRules = r.rules || [];
+  renderPriceInfo();
+}
+function renderPriceInfo() {
+  const isMember = user?.isMember;
+  document.getElementById('priceInfo').innerHTML = priceRules.map(r =>
+    `<span class="price-chip">${r.label} (${String(r.hour_start).padStart(2,'0')}:00~${String(r.hour_end).padStart(2,'0')}:59)：<strong>NT$${isMember ? r.price_member : r.price_non_member}</strong>/時</span>`
+  ).join('');
+}
+function getPrice(hour) {
+  const rule = priceRules.find(r => hour >= r.hour_start && hour <= r.hour_end);
+  if (!rule) return user?.isMember ? 400 : 500;
+  return user?.isMember ? rule.price_member : rule.price_non_member;
+}
+
+// ── 排程 ──
+function renderDate() {
+  const d = new Date(); d.setDate(d.getDate() + currentDay);
+  const days = ['日','一','二','三','四','五','六'];
+  document.getElementById('dateTxt').textContent =
+    `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} (週${days[d.getDay()]})`;
+}
+function changeDay(n) {
+  currentDay += n;
+  basket = basket.filter(b => b.day === currentDay);
+  renderDate(); loadSchedule();
+}
+async function loadSchedule() {
+  const d = new Date(); d.setDate(d.getDate() + currentDay);
+  const date = d.toISOString().slice(0,10);
+  try {
+    const r = await api('GET', `/api/bookings/schedule?date=${date}`);
+    scheduleData = r.bookings || [];
+    renderSchedule(date);
+  } catch { toast('載入失敗'); }
+}
+function renderSchedule(date) {
+  let head = '<tr><th>時間</th>';
+  for (let c = 1; c <= 8; c++) head += `<th>場地${c}</th>`;
+  head += '</tr>';
+  document.getElementById('schedHead').innerHTML = head;
+
+  const bookedMap = {};
+  scheduleData.forEach(b => { bookedMap[`${b.court_id}|${b.hour}`] = b; });
+
+  let body = '';
+  let bookedCount = 0;
+  for (let h = 0; h < 24; h++) {
+    body += `<tr><td class="time-lbl">${String(h).padStart(2,'0')}:00</td>`;
+    for (let c = 1; c <= 8; c++) {
+      const bk = bookedMap[`${c}|${h}`];
+      const inBasket = basket.some(b => b.court === c && b.hour === h && b.day === currentDay);
+      if (bk) {
+        bookedCount++;
+        const isMe = bk.members?.name === user?.name && bk.members;
+        if (isMe) {
+          body += `<td class="cell booked-mine" onclick="cancelPrompt('${date}',${c},${h})" title="我的預約（點擊取消）"><span class="cell-label">我</span></td>`;
+        } else {
+          body += `<td class="cell booked-other" title="已被預約"><span class="cell-label">●</span></td>`;
+        }
+      } else if (inBasket) {
+        body += `<td class="cell selected" onclick="toggleCell(${c},${h})" title="已選（點擊移除）"><span class="cell-label">✓</span></td>`;
+      } else {
+        body += `<td class="cell free" onclick="toggleCell(${c},${h})" title="場地${c} ${String(h).padStart(2,'0')}:00 - NT$${getPrice(h)}"></td>`;
+      }
+    }
+    body += '</tr>';
+  }
+  document.getElementById('schedBody').innerHTML = body;
+
+  const dayBasket = basket.filter(b => b.day === currentDay);
+  document.getElementById('s2').textContent = bookedCount;
+  document.getElementById('s3').textContent = 8*24 - bookedCount - dayBasket.length;
+  document.getElementById('s4').textContent = dayBasket.length;
+}
+
+function toggleCell(court, hour) {
+  const idx = basket.findIndex(b => b.court === court && b.hour === hour && b.day === currentDay);
+  if (idx >= 0) {
+    basket.splice(idx, 1);
+  } else {
+    const dayBasket = basket.filter(b => b.day === currentDay);
+    if (dayBasket.length >= 5) { toast('最多只能選 5 個時段'); return; }
+    const d = new Date(); d.setDate(d.getDate() + currentDay);
+    basket.push({ court, hour, day: currentDay, date: d.toISOString().slice(0,10), price: getPrice(hour) });
+  }
+  const d = new Date(); d.setDate(d.getDate() + currentDay);
+  renderSchedule(d.toISOString().slice(0,10));
+  renderBasket();
+}
+
+async function cancelPrompt(date, court, hour) {
+  if (!confirm(`確定取消場地${court} ${String(hour).padStart(2,'0')}:00 的預約嗎？`)) return;
+  const bk = scheduleData.find(b => b.court_id === court && b.hour === hour);
+  if (!bk) return;
+  try {
+    await api('DELETE', `/api/bookings/${bk.id}`);
+    toast('✓ 已取消預約');
+    loadSchedule();
+  } catch(e) { toast(e.message); }
+}
+
+// ── 購物籃 ──
+function renderBasket() {
+  const dayBasket = basket.filter(b => b.day === currentDay);
+  document.getElementById('basketCnt').textContent = dayBasket.length ? `(${dayBasket.length}/5 個時段)` : '';
+  if (!dayBasket.length) {
+    document.getElementById('basketList').innerHTML = '<div class="basket-empty">點擊綠色格子選擇時段（最多4個）</div>';
+    hide('basketFooter'); return;
+  }
+  const sorted = [...dayBasket].sort((a,b)=>a.hour-b.hour||(a.court-b.court));
+  document.getElementById('basketList').innerHTML = sorted.map(b =>
+    `<div class="basket-item">
+      <div class="basket-item-left">
+        <span>場地${b.court} · ${String(b.hour).padStart(2,'0')}:00～${String(b.hour+1).padStart(2,'0')}:00</span>
+        <span class="basket-item-price">NT$${b.price}${user?.isMember?' (會員價)':''}</span>
+      </div>
+      <span class="rm" onclick="removeItem(${b.court},${b.hour})">×</span>
+    </div>`
+  ).join('');
+  const total = dayBasket.reduce((s,b)=>s+b.price,0);
+  document.getElementById('totalAmt').textContent = `NT$${total.toLocaleString()}`;
+  show('basketFooter');
+}
+function removeItem(court, hour) {
+  basket = basket.filter(b => !(b.court===court && b.hour===hour && b.day===currentDay));
+  const d = new Date(); d.setDate(d.getDate() + currentDay);
+  renderSchedule(d.toISOString().slice(0,10)); renderBasket();
+}
+function clearBasket() {
+  basket = basket.filter(b => b.day !== currentDay);
+  const d = new Date(); d.setDate(d.getDate() + currentDay);
+  renderSchedule(d.toISOString().slice(0,10)); renderBasket();
+}
+
+// ── 確認預約彈窗 ──
+function openConfirmModal() {
+  const dayBasket = basket.filter(b => b.day === currentDay);
+  if (!dayBasket.length) return;
+  const total = dayBasket.reduce((s,b)=>s+b.price,0);
+  const sorted = [...dayBasket].sort((a,b)=>a.hour-b.hour);
+  document.getElementById('confirmList').innerHTML = sorted.map(b =>
+    `<div class="confirm-row"><span>場地${b.court} ${String(b.hour).padStart(2,'0')}:00～${String(b.hour+1).padStart(2,'0')}:00</span><span>NT$${b.price}</span></div>`
+  ).join('');
+  document.getElementById('confirmTotal').textContent = `NT$${total.toLocaleString()}`;
+  selectedPay = null;
+  document.getElementById('btnPay').disabled = true;
+  document.getElementById('btnPay').textContent = '送出預約';
+  ['payEcpay','payLinepay','payCash'].forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('selected'); });
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeModal() { document.getElementById('confirmModal').classList.remove('open'); }
+function selectPay(method) {
+  selectedPay = method;
+  ['payEcpay','payLinepay','payCash'].forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('selected'); });
+  const idMap = {ecpay:'payEcpay', linepay:'payLinepay', cash:'payCash'};
+  const el = document.getElementById(idMap[method]);
+  if(el) el.classList.add('selected');
+  document.getElementById('btnPay').disabled = false;
+}
+
+async function doBook() {
+  if (!selectedPay) return;
+  const dayBasket = basket.filter(b => b.day === currentDay);
+  const slots = dayBasket.map(b => ({ court_id: b.court, date: b.date, hour: b.hour }));
+  try {
+    document.getElementById('btnPay').textContent = '建立預約中...';
+    document.getElementById('btnPay').disabled = true;
+    const r = await api('POST', '/api/bookings', { slots });
+    const bookingIds = r.bookings.map(b => b.id);
+
+    if (selectedPay === 'cash') {
+      basket = basket.filter(b => b.day !== currentDay);
+      closeModal();
+      toast('✅ 預約成功！請於現場付款');
+      const d = new Date(); d.setDate(d.getDate() + currentDay);
+      renderSchedule(d.toISOString().slice(0,10));
+      renderBasket();
+      switchTab('mybookings');
+    } else if (selectedPay === 'ecpay') {
+      const pr = await api('POST', '/api/payment/ecpay/create', { bookingIds });
+      submitForm(pr.url, pr.params);
+    } else {
+      const pr = await api('POST', '/api/payment/linepay/create', { bookingIds });
+      location.href = pr.paymentUrl;
+    }
+  } catch(e) {
+    toast(e.message || '預約失敗');
+    document.getElementById('btnPay').textContent = '送出預約';
+    document.getElementById('btnPay').disabled = false;
+  }
+}
+
+function submitForm(url, params) {
+  const form = document.createElement('form');
+  form.method = 'POST'; form.action = url;
+  Object.entries(params).forEach(([k,v]) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = k; inp.value = v;
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form); form.submit();
+}
+
+// ── 我的預約 ──
+async function loadMyBookings() {
+  try {
+    const r = await api('GET', '/api/bookings/mine');
+    const orders = r.orders || [];
+    if (!orders.length) { document.getElementById('myBookingsList').innerHTML='<div class="empty-state">目前沒有任何預約</div>'; return; }
+    const stMap = { pending:'待付款', paid:'已付款', cancelled:'已取消' };
+    const stClass = { pending:'st-pending', paid:'st-paid', cancelled:'st-cancelled' };
+    document.getElementById('myBookingsList').innerHTML = orders.map(order => {
+      const createdAt = new Date(order.created_at).toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const slots = order.bookings.sort((a,b)=>a.hour-b.hour);
+      const slotsHtml = slots.map(b =>
+        `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px solid #f5f5fa">
+          <span>場地 ${b.court_id}　${b.date} ${String(b.hour).padStart(2,'0')}:00～${String(b.hour+1).padStart(2,'0')}:00</span>
+          <span style="color:#0a6e4e;font-weight:500">NT$${b.price}</span>
+        </div>`
+      ).join('');
+      const cancelBtns = order.status==='pending' ? slots.map(b =>
+        `<button class="btn-cancel-booking" onclick="cancelBooking('${b.id}')">取消場地${b.court_id}</button>`
+      ).join('') : '';
+      return `<div class="booking-card">
+        <div class="booking-card-row">
+          <div class="booking-info" style="width:100%">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div style="font-weight:600;font-size:15px">訂單 · ${slots.length} 個時段</div>
+              <span class="status-badge ${stClass[order.status]}">${stMap[order.status]}</span>
+            </div>
+            ${slotsHtml}
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:2px solid #e8eaf0">
+              <div style="font-size:12px;color:#9ca3af">🕐 預約時間：${createdAt}${order.payment_method ? '　' + payMethodLabel(order.payment_method) : ''}</div>
+              <div style="font-size:16px;font-weight:700;color:#0a6e4e">合計 NT$${order.total.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+        ${order.status==='pending' ? `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">${cancelBtns}<button class="btn-pay-now" onclick="payNowOrder('${order.order_id}')">立即付款</button></div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) { document.getElementById('myBookingsList').innerHTML='<div class="empty-state">載入失敗</div>'; }
+}
+function payMethodLabel(m) { return {ecpay:'綠界信用卡',linepay:'LINE Pay',cash:'現場付款'}[m]||m; }
+
+async function payNowOrder(orderId) {
+  // 找到該訂單所有 pending 的 booking ids
+  try {
+    const r = await api('GET', '/api/bookings/mine');
+    const order = (r.orders||[]).find(o => o.order_id === orderId);
+    if (!order) { toast('找不到訂單'); return; }
+    const bookingIds = order.bookings.map(b => b.id);
+    const method = prompt('付款方式輸入 ecpay（信用卡）或 linepay（LINE Pay）：');
+    if (!method) return;
+    if (method === 'ecpay') {
+      const pr = await api('POST', '/api/payment/ecpay/create', { bookingIds });
+      submitForm(pr.url, pr.params);
+    } else if (method === 'linepay') {
+      const pr = await api('POST', '/api/payment/linepay/create', { bookingIds });
+      location.href = pr.paymentUrl;
+    }
+  } catch(e) { toast(e.message); }
+}
+
+async function cancelBooking(id) {
+  if (!confirm('確定要取消這筆預約嗎？')) return;
+  try {
+    await api('DELETE', `/api/bookings/${id}`);
+    toast('✓ 已取消預約'); loadMyBookings(); loadSchedule();
+  } catch(e) { toast(e.message); }
+}
+
+async function payNow(id) {
+  selectedPay = null;
+  pendingBookingIds = [id];
+  const method = prompt('付款方式輸入 ecpay（信用卡）或 linepay（LINE Pay）：');
+  if (!method) return;
+  try {
+    if (method === 'ecpay') {
+      const pr = await api('POST', '/api/payment/ecpay/create', { bookingIds: [id] });
+      submitForm(pr.url, pr.params);
+    } else if (method === 'linepay') {
+      const pr = await api('POST', '/api/payment/linepay/create', { bookingIds: [id] });
+      location.href = pr.paymentUrl;
+    }
+  } catch(e) { toast(e.message); }
+}
+
+// ── Tabs ──
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='booking')||(i===1&&tab==='mybookings')));
+  document.getElementById('tabBooking').classList.toggle('active', tab==='booking');
+  document.getElementById('tabMyBookings').classList.toggle('active', tab==='mybookings');
+  if (tab === 'mybookings') loadMyBookings();
+}
+
+// ── Helpers ──
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type':'application/json' } };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || '請求失敗');
+  return data;
+}
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function showErr(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.style.display='block'; }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+document.getElementById('loginName').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
