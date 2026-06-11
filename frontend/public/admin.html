@@ -103,17 +103,20 @@ input:focus{border-color:#0a6e4e}
     <!-- 預約管理 -->
     <div id="tcBookings" class="tc">
       <div class="filter-bar">
-        <input type="date" id="filterDate" onchange="loadAdminBookings()"/>
+        <input type="date" id="filterDateFrom" placeholder="開始日期" onchange="loadAdminBookings()"/>
+        <span style="font-size:13px;color:#6b7280">～</span>
+        <input type="date" id="filterDateTo" placeholder="結束日期" onchange="loadAdminBookings()"/>
         <select id="filterStatus" onchange="loadAdminBookings()">
           <option value="">全部狀態</option>
           <option value="pending">待付款</option>
           <option value="paid">已付款</option>
           <option value="cancelled">已取消</option>
         </select>
+        <button class="btn-sm" onclick="clearDateFilter()" style="padding:7px 12px">顯示全部</button>
       </div>
       <div class="card">
         <table>
-          <thead><tr><th>日期</th><th>時間</th><th>場地</th><th>球友</th><th>金額</th><th>狀態</th><th>付款</th><th>操作</th></tr></thead>
+          <thead><tr><th>預約日期</th><th>時間</th><th>場地</th><th>球友</th><th>金額</th><th>狀態</th><th>付款</th><th>建立時間</th><th>操作</th></tr></thead>
           <tbody id="bookingsTable"></tbody>
         </table>
       </div>
@@ -244,11 +247,18 @@ async function loadDashboard(){
   </table>`:'<div style="color:#9ca3af;font-size:13px;padding:1rem 0">今日無預約</div>';
 }
 
+function clearDateFilter(){
+  document.getElementById('filterDateFrom').value='';
+  document.getElementById('filterDateTo').value='';
+  loadAdminBookings();
+}
 async function loadAdminBookings(){
-  const date=document.getElementById('filterDate').value;
+  const dateFrom=document.getElementById('filterDateFrom').value;
+  const dateTo=document.getElementById('filterDateTo').value;
   const status=document.getElementById('filterStatus').value;
   let url='/api/admin/bookings?';
-  if(date) url+=`date=${date}&`;
+  if(dateFrom) url+=`date_from=${dateFrom}&`;
+  if(dateTo) url+=`date_to=${dateTo}&`;
   if(status) url+=`status=${status}`;
   const r=await api('GET',url);
   const bks=r.bookings||[];
@@ -263,6 +273,7 @@ async function loadAdminBookings(){
     <td>NT$${b.price}${b.is_member_price?' <span style="font-size:10px;color:#059669">會員</span>':''}</td>
     <td><span class="badge ${stClass[b.status]}">${stMap[b.status]}</span></td>
     <td>${b.payment_method?pmMap[b.payment_method]||b.payment_method:'—'}</td>
+    <td style="font-size:11px;color:#9ca3af">${b.created_at?new Date(b.created_at).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'—'}</td>
     <td>${b.status==='pending'?`<button class="btn-sm green" onclick="markPaid('${b.id}')">付款</button> `:''}${b.status!=='cancelled'?`<button class="btn-sm red" onclick="adminCancel('${b.id}')">取消</button>`:''}</td>
   </tr>`).join('');
 }
