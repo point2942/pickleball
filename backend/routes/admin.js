@@ -61,22 +61,26 @@ router.delete('/bookings/:id', adminMiddleware, async (req, res) => {
 // ── 定價管理 ──
 
 router.get('/prices', adminMiddleware, async (req, res) => {
-  const { data } = await supabase.from('price_rules').select('*').order('hour_start');
+  const { data } = await supabase.from('price_rules').select('*')
+    .order('day_type').order('hour_start');
   res.json({ rules: data });
 });
 
 router.put('/prices/:id', adminMiddleware, async (req, res) => {
-  const { label, hour_start, hour_end, price_member, price_non_member } = req.body;
+  const { label, hour_start, hour_end, price_member, price_non_member, day_type } = req.body;
   await supabase.from('price_rules').update({
-    label, hour_start, hour_end, price_member, price_non_member, updated_at: new Date()
+    label, hour_start, hour_end, price_member, price_non_member,
+    day_type: day_type || 'weekday',
+    updated_at: new Date()
   }).eq('id', req.params.id);
   res.json({ ok: true });
 });
 
 router.post('/prices', adminMiddleware, async (req, res) => {
-  const { label, hour_start, hour_end, price_member, price_non_member } = req.body;
+  const { label, hour_start, hour_end, price_member, price_non_member, day_type } = req.body;
   const { data, error } = await supabase.from('price_rules')
-    .insert({ label, hour_start, hour_end, price_member, price_non_member }).select().single();
+    .insert({ label, hour_start, hour_end, price_member, price_non_member, day_type: day_type || 'weekday' })
+    .select().single();
   if (error) return res.status(400).json({ error: error.message });
   res.json({ rule: data });
 });
@@ -121,6 +125,30 @@ router.post('/change-password', adminMiddleware, async (req, res) => {
   if (!valid) return res.status(400).json({ error: '舊密碼錯誤' });
   const hash = await bcrypt.hash(newPassword, 12);
   await supabase.from('admins').update({ password_hash: hash }).eq('id', req.admin.id);
+  res.json({ ok: true });
+});
+
+// ── 假日管理 ──
+
+router.get('/holidays', adminMiddleware, async (req, res) => {
+  const { data } = await supabase.from('holidays').select('*').order('date');
+  res.json({ holidays: data || [] });
+});
+
+router.post('/holidays', adminMiddleware, async (req, res) => {
+  const { date, name } = req.body;
+  if (!date || !name) return res.status(400).json({ error: '請填寫日期與名稱' });
+  const { data, error } = await supabase.from('holidays')
+    .insert({ date, name }).select().single();
+  if (error) {
+    if (error.code === '23505') return res.status(409).json({ error: '此日期已設定為假日' });
+    return res.status(400).json({ error: error.message });
+  }
+  res.json({ holiday: data });
+});
+
+router.delete('/holidays/:id', adminMiddleware, async (req, res) => {
+  await supabase.from('holidays').delete().eq('id', req.params.id);
   res.json({ ok: true });
 });
 
